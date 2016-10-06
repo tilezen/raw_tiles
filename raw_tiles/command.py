@@ -3,6 +3,7 @@ from raw_tiles.util import st_box2d_for_tile
 import psycopg2
 import gzip
 import boto3
+import tempfile
 
 
 def output_fmt(fmt, conn, table, z, x, y):
