@@ -46,12 +46,17 @@ if __name__ == '__main__':
     z = int(sys.argv[2])
     output_bucket = sys.argv[3]
 
+    max_coord = 1 << z
+    if len(sys.argv) > 4:
+        x_range = map(int, sys.argv[4].split('-'))
+    else:
+        x_range = [0, max_coord]
+
     conn = psycopg2.connect(db_params)
 
     s3 = boto3.resource('s3')
 
-    max_coord = 1 << z
-    for x in range(0, max_coord):
+    for x in range(*x_range):
         for y in range(0, max_coord):
             for table in tables:
                 output_tile(s3, output_bucket, conn, table, z, x, y)
