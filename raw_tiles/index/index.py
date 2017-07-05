@@ -47,13 +47,56 @@ class RouteIndex(object):
         return routes
 
 
-def index(tile, *indices):
-    file_name = 'tiles/osm/planet_osm_rels/%d/%d/%d.msgpack.gz' % \
-        (tile.z, tile.x, tile.y)
+Highway = namedtuple('Highway', 'id tags')
 
-    for obj in tile_contents(file_name):
-        for index in indices:
-            index.add_relation(*obj)
+
+class HighwayIndex(object):
+
+    def __init__(self):
+        self.inverted = defaultdict(list)
+        self.highways = dict()
+
+    def add_way(self, way_id, nodes, tags):
+        if tags is None:
+            return
+
+        tags = deassoc(tags)
+
+        if tags.get('highway'):
+            self.highways[way_id] = Highway(way_id, tags)
+            for node_id in nodes:
+                self.inverted[node_id].append(way_id)
+
+    def __call__(self, node_id):
+        highways = []
+        way_ids = self.inverted.get(node_id)
+        if way_ids:
+            highways = list()
+            for way_id in way_ids:
+                highways.append(self.highways[way_id])
+
+        return highways
+
+
+def index_table(tile, table, index_fn, *indices):
+    file_name = 'tiles/osm/%s/%d/%d/%d.msgpack.gz' % \
+        (table, tile.z, tile.x, tile.y)
+
+    # filter only indices which respond to index_fn
+    indexable = list()
+    for index in indices:
+        if callable(getattr(index, index_fn, None)):
+            indexable.append(index)
+
+    if indexable:
+        for obj in tile_contents(file_name):
+            for index in indexable:
+                getattr(index, index_fn)(*obj)
+
+
+def index(tile, *indices):
+    index_table(tile, 'planet_osm_ways', 'add_way', *indices)
+    index_table(tile, 'planet_osm_rels', 'add_relation', *indices)
 
 
 if __name__ == '__main__':
@@ -63,11 +106,31 @@ if __name__ == '__main__':
     tile = Tile(z, x, y)
 
     rt_idx = RouteIndex()
-    index(tile, rt_idx)
+    hw_idx = HighwayIndex()
+    index(tile, rt_idx, hw_idx)
 
-    for way_id in map(int, sys.argv[2:]):
-        routes = rt_idx(way_id)
-        print ">>> WAY %d" % (way_id,)
-        for route in routes:
-            print "  %r" % (route,)
-        print
+    for arg in sys.argv[2:]:
+        typ = arg[0]
+        elt_id = int(arg[1:])
+
+        if typ == 'n':
+            highways = hw_idx(elt_id)
+            print ">>> NODE %d" % (elt_id,)
+            for highway in highways:
+                hw_type = highway.tags.get('highway')
+                name = highway.tags.get('name')
+                print "  %r\t%r" % (hw_type, name)
+            print
+
+        elif typ == 'w':
+            routes = rt_idx(elt_id)
+            print ">>> WAY %d" % (elt_id,)
+            for route in routes:
+                rt_type = route.tags.get('route')
+                name = route.tags.get('name')
+                print "  %r\t%r" % (rt_type, name)
+            print
+
+        else:
+            raise RuntimeError("Don't understand element type %r in "
+                               "argument %r" % (typ, arg))
