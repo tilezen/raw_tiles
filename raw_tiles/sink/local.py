@@ -1,5 +1,6 @@
 import errno
 import os
+from io import open
 
 
 # from https://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python#600612
@@ -27,5 +28,5 @@ class LocalSink(object):
         # ensure directory exists to take tile file
         mkdir_p(file_dir)
 
-        io = open(os.path.join(file_dir, "%d.%s" % (tile.y, ext)), 'w')
+        io = open(os.path.join(file_dir, "%d.%s" % (tile.y, ext)), 'wb')
         return self.formatter.create(io)
