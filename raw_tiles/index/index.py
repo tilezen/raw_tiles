@@ -3,20 +3,24 @@ import gzip
 from msgpack import Unpacker
 from collections import namedtuple, defaultdict
 from raw_tiles.tile import Tile
+from io import BufferedReader
+from itertools import izip
 
 
 def tile_contents(file_name):
-    with gzip.open(file_name, 'rb') as gz:
+    with BufferedReader(gzip.open(file_name, 'rb')) as gz:
         unpacker = Unpacker(file_like=gz)
         for obj in unpacker:
             yield obj
 
 
 def deassoc(x):
-    return dict((x[2*i], x[2*i+1]) for i in range(0, len(x)/2))
+    pairs = [iter(x)] * 2
+    return dict(izip(*pairs))
 
 
 Route = namedtuple('Route', 'id tags')
+
 
 class RouteIndex(object):
 
@@ -26,6 +30,12 @@ class RouteIndex(object):
 
     def add_relation(self, rel_id, way_off, rel_off, parts, members, tags):
         if tags is None:
+            return
+
+        # early return if the tags associative array doesn't contain 'route'.
+        # it turns out that converting this into a dict takes a significant
+        # amount of time, so it's better to avoid it where possible.
+        if 'route' not in tags:
             return
 
         way_ids = parts[way_off:rel_off]
@@ -53,11 +63,18 @@ Highway = namedtuple('Highway', 'id tags')
 class HighwayIndex(object):
 
     def __init__(self):
-        self.inverted = defaultdict(list)
+        self.inverted = defaultdict(set)
         self.highways = dict()
 
     def add_way(self, way_id, nodes, tags):
         if tags is None:
+            return
+
+        # early return if the tags associative array doesn't contain
+        # 'highway'. it turns out that converting this into a dict takes a
+        # significant amount of time, so it's better to avoid it where
+        # possible.
+        if 'highway' not in tags:
             return
 
         tags = deassoc(tags)
@@ -65,7 +82,7 @@ class HighwayIndex(object):
         if tags.get('highway'):
             self.highways[way_id] = Highway(way_id, tags)
             for node_id in nodes:
-                self.inverted[node_id].append(way_id)
+                self.inverted[node_id].add(way_id)
 
     def __call__(self, node_id):
         highways = []
