@@ -1,4 +1,3 @@
-from shapely import wkb
 from shapely.geometry import mapping, shape
 import json
 from contextlib import contextmanager
@@ -9,7 +8,7 @@ class Writer:
         self.io = io
         self.rownum = 0
 
-        fh.write("""{"type":"FeatureCollection","features":[""")
+        io.write("""{"type":"FeatureCollection","features":[""")
 
     def write(self, fid, wkb, props):
         feature = {
@@ -23,7 +22,7 @@ class Writer:
             self.io.write(',')
         self.rownum += 1
 
-        self.io.write(json.dumps(feature, separators=(',',':')))
+        self.io.write(json.dumps(feature, separators=(',', ':')))
 
     def close(self):
         self.io.write("]}")

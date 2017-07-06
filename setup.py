@@ -10,7 +10,13 @@ config = {
     'download_url': 'Where to download it.',
     'author_email': 'matt.amos@mapzen.com',
     'version': '0.1',
-    'install_requires': ['nose', 'psycopg2', 'shapely', 'msgpack-python', 'boto3'],
+    'install_requires': [
+        'nose',
+        'psycopg2',
+        'shapely',
+        'msgpack-python',
+        'boto3'
+    ],
     'packages': ['raw_tiles'],
     'scripts': [],
     'name': 'raw_tiles',

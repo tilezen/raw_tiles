@@ -1,9 +1,8 @@
 from __future__ import absolute_import
 from collections import namedtuple, defaultdict
-from raw_tiles.tile import Tile, shape_tile_coverage
+from raw_tiles.tile import shape_tile_coverage
 from math import floor
 from shapely.wkb import loads as wkb_loads
-from shapely.geos import ReadingError
 
 
 Feature = namedtuple('Feature', 'id geometry properties')

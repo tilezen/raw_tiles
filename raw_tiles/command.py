@@ -3,7 +3,6 @@ from raw_tiles.formatter.gzip import Gzip
 from raw_tiles.source.osm import OsmSource
 from raw_tiles.sink.local import LocalSink
 from raw_tiles.tile import Tile
-import psycopg2
 
 
 def parse_range(z, args):
@@ -49,7 +48,6 @@ if __name__ == '__main__':
     z = int(args.zoom[0])
     x_range = parse_range(z, args.x)
     y_range = parse_range(z, args.y)
-
 
     src = OsmSource(args.dbparams)
     fmt = Gzip(Msgpack())

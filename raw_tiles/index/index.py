@@ -2,12 +2,11 @@ from __future__ import absolute_import
 import gzip
 from msgpack import Unpacker
 from collections import namedtuple, defaultdict
-from raw_tiles.tile import Tile, shape_tile_coverage
+from raw_tiles.tile import Tile
 from io import BufferedReader
 from itertools import izip
-from math import floor
-from shapely.wkb import loads as wkb_loads
 from raw_tiles.index.features import FeatureTileIndex
+
 
 def tile_contents(file_name):
     with BufferedReader(gzip.open(file_name, 'rb')) as gz:

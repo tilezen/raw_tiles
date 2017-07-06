@@ -3,7 +3,7 @@ import os
 from io import open
 
 
-# from https://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python#600612
+# from https://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python#600612 # noqa
 def mkdir_p(path):
     try:
         os.makedirs(path)

@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 from gzip import GzipFile
 from io import BufferedWriter
-import os
 
 
 # gzip can do better if it has a lot of data to work with at once, so we
