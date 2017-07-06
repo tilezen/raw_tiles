@@ -9,6 +9,18 @@ from shapely.geos import ReadingError
 Feature = namedtuple('Feature', 'id geometry properties')
 
 
+class _LazyShape(object):
+
+    def __init__(self, wkb):
+        self.wkb = wkb
+        self.obj = None
+
+    def __getattr__(self, name):
+        if self.obj is None:
+            self.obj = wkb_loads(self.wkb)
+        return getattr(self.obj, name)
+
+
 class FeatureTileIndex(object):
 
     def __init__(self, root_tile, max_z, min_zoom_fn):
@@ -21,7 +33,7 @@ class FeatureTileIndex(object):
 
     def add_feature(self, fid, shape_wkb, props):
         # the incoming shape will be WKB and we need to parse it.
-        shape = wkb_loads(shape_wkb)
+        shape = _LazyShape(shape_wkb)
 
         # calculate min zoom for the feature. if the min zoom is None, that
         # indicates that the feature doesn't appear at all.
