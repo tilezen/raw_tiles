@@ -1,5 +1,6 @@
 MERCATOR_WORLD_SIZE = 40075016.68
 
+
 def bbox_for_tile(z, x, y):
     max_coord = float(1 << z)
     return (

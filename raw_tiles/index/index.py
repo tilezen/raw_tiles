@@ -2,10 +2,12 @@ from __future__ import absolute_import
 import gzip
 from msgpack import Unpacker
 from collections import namedtuple, defaultdict
-from raw_tiles.tile import Tile
+from raw_tiles.tile import Tile, shape_tile_coverage
 from io import BufferedReader
 from itertools import izip
-
+from math import floor
+from shapely.wkb import loads as wkb_loads
+from raw_tiles.index.features import FeatureTileIndex
 
 def tile_contents(file_name):
     with BufferedReader(gzip.open(file_name, 'rb')) as gz:
@@ -114,6 +116,28 @@ def index_table(tile, table, index_fn, *indices):
 def index(tile, *indices):
     index_table(tile, 'planet_osm_ways', 'add_way', *indices)
     index_table(tile, 'planet_osm_rels', 'add_relation', *indices)
+    for typ in ('point', 'line', 'polygon'):
+        index_table(tile, 'planet_osm_' + typ, 'add_feature', *indices)
+
+
+def calculate_1px_zoom(way_area):
+    import math
+    # can't take logarithm of zero, and some ways have
+    # incredibly tiny areas, down to even zero. also, by z16
+    # all features really should be visible, so we clamp the
+    # computation at the way area which would result in 16
+    # being returned.
+    if way_area < 5.704:
+        return 16
+    else:
+        return 17.256 - math.log(way_area) / math.log(4)
+
+
+def landuse_min_zoom(fid, shape, props):
+    if 'landuse' in props:
+        return calculate_1px_zoom(shape.area)
+    else:
+        return None
 
 
 if __name__ == '__main__':
@@ -124,13 +148,14 @@ if __name__ == '__main__':
 
     rt_idx = RouteIndex()
     hw_idx = HighwayIndex()
-    index(tile, rt_idx, hw_idx)
+    landuse_idx = FeatureTileIndex(tile, tile.z + 5, landuse_min_zoom)
+    index(tile, rt_idx, hw_idx, landuse_idx)
 
     for arg in sys.argv[2:]:
         typ = arg[0]
-        elt_id = int(arg[1:])
 
         if typ == 'n':
+            elt_id = int(arg[1:])
             highways = hw_idx(elt_id)
             print ">>> NODE %d" % (elt_id,)
             for highway in highways:
@@ -140,12 +165,24 @@ if __name__ == '__main__':
             print
 
         elif typ == 'w':
+            elt_id = int(arg[1:])
             routes = rt_idx(elt_id)
             print ">>> WAY %d" % (elt_id,)
             for route in routes:
                 rt_type = route.tags.get('route')
                 name = route.tags.get('name')
                 print "  %r\t%r" % (rt_type, name)
+            print
+
+        elif typ == 't':
+            t = Tile(*map(int, arg[1:].split("/")))
+            features = landuse_idx(t)
+            print ">>> TILE %r" % (t,)
+            for feature in features:
+                fid = feature.id
+                landuse = feature.properties.get('landuse')
+                name = feature.properties.get('name')
+                print "  %r\t%r\t%r" % (fid, landuse, name)
             print
 
         else:
