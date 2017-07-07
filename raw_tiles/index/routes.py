@@ -7,6 +7,15 @@ Route = namedtuple('Route', 'id tags')
 
 
 class RouteIndex(object):
+    """
+    Indexes the way members of type=route relations, allowing very fast lookup
+    of the routes for a given way ID.
+
+    This will be used by the min zoom and kind calculation functions, as we
+    bump roads up a few zoom levels when they're part of major routes.
+    Additionally, some information on way geometries (e.g: bus and cycle route
+    info) comes only or mostly from the route relations.
+    """
 
     def __init__(self):
         self.inverted = defaultdict(list)

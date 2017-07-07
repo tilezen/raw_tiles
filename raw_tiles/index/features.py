@@ -9,6 +9,13 @@ Feature = namedtuple('Feature', 'id geometry properties')
 
 
 class _LazyShape(object):
+    """
+    This proxy exists so that we can avoid parsing the WKB for a shape unless
+    it is actually needed. Parsing WKB is pretty fast, but multiplied over
+    many thousands of objects, it can become the slowest part of the indexing
+    process. Given that we reject many features on the basis of their
+    properties alone, lazily parsing the WKB can provide a significant saving.
+    """
 
     def __init__(self, wkb):
         self.wkb = wkb
@@ -21,6 +28,17 @@ class _LazyShape(object):
 
 
 class FeatureTileIndex(object):
+    """
+    Index features by the tile(s) that they appear in. This allows quick lookup
+    of the features in any given tile.
+
+    The method calculates the min zoom for a feature using the provided
+    `min_zoom_fn`, then calculates its coverage over all the tiles at the
+    maximum zoom given (e.g: for a z10 RAWR tile, that might be 15 or 16).
+    The feature (rather, a reference to it) is inserted into a dict indexed by
+    the tile coordinate, meaning that feature lookup is a single hash
+    operation.
+    """
 
     def __init__(self, root_tile, max_z, min_zoom_fn):
         assert max_z >= root_tile.z

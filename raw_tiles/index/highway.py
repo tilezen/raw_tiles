@@ -7,6 +7,13 @@ Highway = namedtuple('Highway', 'id tags')
 
 
 class HighwayIndex(object):
+    """
+    Indexes the node members of highway ways, so that the highways using a
+    given node ID can be looked up quickly.
+
+    This is used in the min zoom calculation functions to assign a lower min
+    zoom to gates which are on more major road types.
+    """
 
     def __init__(self):
         self.inverted = defaultdict(set)
