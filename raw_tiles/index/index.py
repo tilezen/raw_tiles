@@ -1,102 +1,33 @@
 from __future__ import absolute_import
 import gzip
 from msgpack import Unpacker
-from collections import namedtuple, defaultdict
 from raw_tiles.tile import Tile
 from io import BufferedReader
-from itertools import izip
 from raw_tiles.index.features import FeatureTileIndex
+from raw_tiles.index.highway import HighwayIndex
+from raw_tiles.index.routes import RouteIndex
 
 
 def tile_contents(file_name):
+    """
+    Generator yielding each item in a gzipped msgpack format file.
+
+    TODO: This should be generalised? Perhaps move into formatter classes?
+    """
+
     with BufferedReader(gzip.open(file_name, 'rb')) as gz:
         unpacker = Unpacker(file_like=gz)
         for obj in unpacker:
             yield obj
 
 
-def deassoc(x):
-    pairs = [iter(x)] * 2
-    return dict(izip(*pairs))
-
-
-Route = namedtuple('Route', 'id tags')
-
-
-class RouteIndex(object):
-
-    def __init__(self):
-        self.inverted = defaultdict(list)
-        self.routes = dict()
-
-    def add_relation(self, rel_id, way_off, rel_off, parts, members, tags):
-        if tags is None:
-            return
-
-        # early return if the tags associative array doesn't contain 'route'.
-        # it turns out that converting this into a dict takes a significant
-        # amount of time, so it's better to avoid it where possible.
-        if 'route' not in tags:
-            return
-
-        way_ids = parts[way_off:rel_off]
-        tags = deassoc(tags)
-
-        if tags.get('type') == 'route':
-            self.routes[rel_id] = Route(rel_id, tags)
-            for way_id in way_ids:
-                self.inverted[way_id].append(rel_id)
-
-    def __call__(self, way_id):
-        routes = []
-        rel_ids = self.inverted.get(way_id)
-        if rel_ids:
-            routes = list()
-            for rel_id in rel_ids:
-                routes.append(self.routes[rel_id])
-
-        return routes
-
-
-Highway = namedtuple('Highway', 'id tags')
-
-
-class HighwayIndex(object):
-
-    def __init__(self):
-        self.inverted = defaultdict(set)
-        self.highways = dict()
-
-    def add_way(self, way_id, nodes, tags):
-        if tags is None:
-            return
-
-        # early return if the tags associative array doesn't contain
-        # 'highway'. it turns out that converting this into a dict takes a
-        # significant amount of time, so it's better to avoid it where
-        # possible.
-        if 'highway' not in tags:
-            return
-
-        tags = deassoc(tags)
-
-        if tags.get('highway'):
-            self.highways[way_id] = Highway(way_id, tags)
-            for node_id in nodes:
-                self.inverted[node_id].add(way_id)
-
-    def __call__(self, node_id):
-        highways = []
-        way_ids = self.inverted.get(node_id)
-        if way_ids:
-            highways = list()
-            for way_id in way_ids:
-                highways.append(self.highways[way_id])
-
-        return highways
-
-
 def index_table(tile, table, index_fn, *indices):
+    """
+    Index a table for the given tile coordinates. The `index_fn` is called
+    with each item in the tile for each of `*indices` which has that function
+    defined.
+    """
+
     file_name = 'tiles/osm/%s/%d/%d/%d.msgpack.gz' % \
         (table, tile.z, tile.x, tile.y)
 
@@ -113,12 +44,24 @@ def index_table(tile, table, index_fn, *indices):
 
 
 def index(tile, *indices):
+    """
+    Fill the given indices with data from all known tables for the given tile.
+    """
+
     index_table(tile, 'planet_osm_ways', 'add_way', *indices)
     index_table(tile, 'planet_osm_rels', 'add_relation', *indices)
     for typ in ('point', 'line', 'polygon'):
         index_table(tile, 'planet_osm_' + typ, 'add_feature', *indices)
 
 
+########################################################################
+# NOTE: this is copied just to have a min zoom function to work with.
+# later on, this will be importing the min zoom functions which
+# tilequeue generates from the yaml, and so this copy-and-paste can be
+# deleted.
+#
+# START COPY-PASTE
+########################################################################
 def calculate_1px_zoom(way_area):
     import math
     # can't take logarithm of zero, and some ways have
@@ -137,8 +80,24 @@ def landuse_min_zoom(fid, shape, props):
         return calculate_1px_zoom(shape.area)
     else:
         return None
+########################################################################
+# END COPY-PASTE
+########################################################################
 
-
+# simple test harness to build the indexes and then look up some ways,
+# relations or tiles ("landuse" layer).
+#
+# for example, run as:
+#
+# $ python raw_tiles/command.py --dbparams dbname=california 10 163 395
+# $ python raw_tiles/index/index.py 10/163/395 w225516713 w123741422 \
+#      n298078639 t10/163/395 t15/5241/12668
+#
+# the first command generates a z10 tile over San Francisco. the second
+# indexes that tile and looks up a couple of ways which are part of route
+# relations, a node which is a gate and a couple of tiles containing
+# various bits of landuse.
+#
 if __name__ == '__main__':
     import sys
 
