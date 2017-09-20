@@ -66,6 +66,9 @@ def shape_tile_coverage(shape, zoom, root_tile):
 
     minx, miny, maxx, maxy = shape.bounds
     max_coord = 2 ** zoom
+    rx = int(root_tile.x)
+    ry = int(root_tile.y)
+    rz = int(root_tile.z)
 
     minx = _floor(max_coord * (0.5 + minx / MERCATOR_WORLD_SIZE))
     maxx = _ceil(max_coord * (0.5 + maxx / MERCATOR_WORLD_SIZE))
@@ -75,12 +78,12 @@ def shape_tile_coverage(shape, zoom, root_tile):
     miny, maxy = maxy, miny
 
     # clip to the root_tile
-    zoom_diff = zoom - root_tile.z
+    zoom_diff = zoom - rz
     zoom_mult = 2 ** zoom_diff
-    minx = max(minx, root_tile.x * zoom_mult)
-    miny = max(miny, root_tile.y * zoom_mult)
-    maxx = min(maxx, (root_tile.x + 1) * zoom_mult - 1)
-    maxy = min(maxy, (root_tile.y + 1) * zoom_mult - 1)
+    minx = max(minx, rx * zoom_mult)
+    miny = max(miny, ry * zoom_mult)
+    maxx = min(maxx, (rx + 1) * zoom_mult - 1)
+    maxy = min(maxy, (ry + 1) * zoom_mult - 1)
 
     tiles = set()
     for x in range(minx, maxx + 1):
