@@ -8,12 +8,15 @@ from raw_tiles.index.highway import HighwayIndex
 from raw_tiles.index.routes import RouteIndex
 
 
-def tile_contents(file_name):
+def tile_contents(tile, table):
     """
     Generator yielding each item in a gzipped msgpack format file.
 
     TODO: This should be generalised? Perhaps move into formatter classes?
     """
+
+    file_name = 'tiles/osm/%s/%d/%d/%d.msgpack.gz' % \
+        (table, tile.z, tile.x, tile.y)
 
     with BufferedReader(gzip.open(file_name, 'rb')) as gz:
         unpacker = Unpacker(file_like=gz)
@@ -21,15 +24,12 @@ def tile_contents(file_name):
             yield obj
 
 
-def index_table(tile, table, index_fn, *indices):
+def index_table(source, index_fn, *indices):
     """
     Index a table for the given tile coordinates. The `index_fn` is called
     with each item in the tile for each of `*indices` which has that function
     defined.
     """
-
-    file_name = 'tiles/osm/%s/%d/%d/%d.msgpack.gz' % \
-        (table, tile.z, tile.x, tile.y)
 
     # filter only indices which respond to index_fn
     indexable = list()
@@ -38,20 +38,24 @@ def index_table(tile, table, index_fn, *indices):
             indexable.append(index)
 
     if indexable:
-        for obj in tile_contents(file_name):
+        for obj in source:
             for index in indexable:
                 getattr(index, index_fn)(*obj)
 
 
-def index(tile, *indices):
+def index(get_table, *indices):
     """
     Fill the given indices with data from all known tables for the given tile.
     """
 
-    index_table(tile, 'planet_osm_ways', 'add_way', *indices)
-    index_table(tile, 'planet_osm_rels', 'add_relation', *indices)
+    planet_osm_ways = get_table('planet_osm_ways')
+    index_table(planet_osm_ways, 'add_way', *indices)
+
+    planet_osm_rels = get_table('planet_osm_rels')
+    index_table(planet_osm_rels, 'add_relation', *indices)
     for typ in ('point', 'line', 'polygon'):
-        index_table(tile, 'planet_osm_' + typ, 'add_feature', *indices)
+        source = get_table('planet_osm_' + typ)
+        index_table(source, 'add_feature', *indices)
 
 
 ########################################################################
@@ -104,10 +108,13 @@ if __name__ == '__main__':
     z, x, y = map(int, sys.argv[1].split("/"))
     tile = Tile(z, x, y)
 
+    def get_table(table):
+        return tile_contents(tile, table)
+
     rt_idx = RouteIndex()
     hw_idx = HighwayIndex()
     landuse_idx = FeatureTileIndex(tile, tile.z + 5, landuse_min_zoom)
-    index(tile, rt_idx, hw_idx, landuse_idx)
+    index(get_table, rt_idx, hw_idx, landuse_idx)
 
     for arg in sys.argv[2:]:
         typ = arg[0]
