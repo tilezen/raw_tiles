@@ -58,6 +58,20 @@ class FeatureTileIndex(object):
         if min_zoom is None:
             return
 
+        # merge min_zoom into the feature's properties. note that there's only
+        # one copy of this, and the reference should be shared amongst many
+        # entries in the tile index.
+        feature = Feature(fid, shape, props.copy())
+        feature.properties['min_zoom'] = min_zoom
+
+        # clamp to the min zoom. features with a min_zoom > max zoom should
+        # appear in the max zoom, but not before.
+        #
+        # NOTE: this happens _after_ min_zoom is put into the feature
+        # properties, because we want to retain the original min zoom in the
+        # tile output.
+        min_zoom = min(min_zoom, self.max_z)
+
         # take the minimum integer zoom - this is the min zoom tile that the
         # feature should appear in, and a feature with min_zoom = 1.9 should
         # appear in a tile at z=1, not 2, since the tile at z=N is used for
@@ -72,12 +86,6 @@ class FeatureTileIndex(object):
         # value larger than the max zoom.
         zoom = self.max_z
         tiles = shape_tile_coverage(shape, zoom, self.root_tile)
-
-        # merge min_zoom into the feature's properties. note that there's only
-        # one copy of this, and the reference should be shared amongst many
-        # entries in the tile index.
-        feature = Feature(fid, shape, props.copy())
-        feature.properties['min_zoom'] = min_zoom
 
         while zoom >= floor_zoom:
             parent_tiles = set()
