@@ -6,11 +6,23 @@ from raw_tiles.tile import Tile
 
 
 def parse_range(z, args):
+    """
+    Parse args, a string representing a range of tile coordinates (either x or
+    y), at zoom level z.
+
+    Supported formats are:
+      - '*' for all coordinates at that zoom.
+      - A single number for a single coordinate.
+      - A range of numbers separated by a dash, inclusive of both ends.
+
+    Returns a generator over the coordinates.
+    """
+
     assert len(args) == 1
     arg = args[0]
 
     if arg == "*":
-        return [0, 2**z - 1]
+        return xrange(0, 2**z - 1)
     r = map(int, arg.split('-'))
     if len(r) == 1:
         r = [r[0], r[0]]
@@ -18,14 +30,10 @@ def parse_range(z, args):
         raise RuntimeError('Expected either a single value or a range '
                            'separated by a dash. Did not understand %r' %
                            (arg,))
-    return r
-
-
-def range_gen(a, b):
-    assert a <= b
-    while a <= b:
-        yield a
-        a += 1
+    # range is inclusive, but xrange is exclusive of the last parameter, so
+    # need to shift it by one.
+    lo, hi = r
+    return xrange(lo, hi + 1)
 
 
 if __name__ == '__main__':
@@ -53,7 +61,7 @@ if __name__ == '__main__':
     fmt = Gzip(Msgpack())
     sink = LocalSink('tiles', fmt)
 
-    for x in range_gen(*x_range):
-        for y in range_gen(*y_range):
+    for x in x_range:
+        for y in y_range:
             tile = Tile(z, x, y)
             src.write(sink, tile)
