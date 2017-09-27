@@ -9,17 +9,17 @@ For "standard" geographic tables, items within the file are stored as an array o
 2. The feature's geometry, encoded as [Well-Known Binary](https://en.wikipedia.org/wiki/Well-known_text).
 3. The feature's properties, encoded as a native msgpack map.
 
-For other tables, such as "ways" and "rels", the items stored within the table are:
+Two auxilliary tables are also used; `planet_osm_ways` and `planet_osm_rels`. The former stores the relationship between ways, which can be either linestring or polygon features, and the nodes which comprise them. This is used to figure out which gates are part of of highway features. The latter stores generalised "relation" relationships between elements, and is used to look up which routes go along a particular road, or figure out the structure of railway stations. The items stored within these tables are:
 
-* "rels": Relation ID, Way offset within parts, Relation offset within parts, parts array of member IDs, members array of type-prefixed member IDs paired with the member role, tags.
-* "ways": Way ID, nodes array of node IDs, tags.
+* `planet_osm_rels`: Relation ID, Way offset within parts, Relation offset within parts, parts array of member IDs, members array of type-prefixed member IDs paired with the member role, tags.
+* `plane_osm_ways`: Way ID, nodes array of node IDs, tags.
 
 These are then stored somewhere, for example S3, to be used by other layers in the tile rendering pipeline.
 
 Why not just use a database?
 ----------------------------
 
-The [tilezen](https://github.com/tilezen) system originally used a [PostgreSQL](https://www.postgresql.org/) database with [PostGIS](https://postgis.net/) to provide spatial indexes. This system performs very well and is very flexible. This system worked well for tilezen, and many other tile providers, for many years.
+The [Tilezen](https://github.com/tilezen) system originally used a [PostgreSQL](https://www.postgresql.org/) database with [PostGIS](https://postgis.net/) to provide spatial indexes. This system performs very well and is very flexible. This system worked well for Tilezen, and many other tile providers, for many years.
 
 However, we found a couple of issues would repeatedly cause headaches; scaling and logic in the database.
 
@@ -31,7 +31,7 @@ This doesn't mean that we shouldn't use PostgreSQL, just that we should find som
 
 ### Logic in the database
 
-To support efficient queries for features at a given zoom level, the tilezen database contains [indexes](https://github.com/tilezen/vector-datasource/blob/7b7394482ccd72bb8a46f30137203ea49ce974af/data/apply-planet_osm_polygon.sql#L47) on the feature geometry and minimum zoom level that the feature is visible at. This works well, but means that the definition of which zoom level a feature is visible at must be available to the database.
+To support efficient queries for features at a given zoom level, the Tilezen database contains [indexes](https://github.com/tilezen/vector-datasource/blob/7b7394482ccd72bb8a46f30137203ea49ce974af/data/apply-planet_osm_polygon.sql#L47) on the feature geometry and minimum zoom level that the feature is visible at. This works well, but means that the definition of which zoom level a feature is visible at must be available to the database.
 
 Most features have a simple relationship between their tags, geometry and the `min_zoom` they are assigned. However, some features have [complex queries](https://github.com/tilezen/vector-datasource/blob/7b7394482ccd72bb8a46f30137203ea49ce974af/data/functions.sql#L580) to determine their `min_zoom`. Others have [extremely complex queries](https://mapzen.com/blog/station-relations/).
 
@@ -98,4 +98,4 @@ There are other serialisation formats which could be used, but at this point hav
 * [Google Protocol Buffers](https://developers.google.com/protocol-buffers/), which is similar to msgpack but requires a schema. This would make it more difficult to store the tags or change the "shape" of the data format.
 * [Google FlatBuffers](https://google.github.io/flatbuffers/), which stores data in a `mmap`-friendly way. This means the files are somewhat larger, but that it would be possible to access data within the file more easily (e.g: sub-tiling for geographic indexing). FlatBuffers would also require a schema. It's not clear at this point whether having random access to data within the raw(r) tile would be a benefit worth trading off the file size for.
 * [GeoJSON](http://geojson.org/) has a huge advantage of easy readability, but is slower to parse than the WKB stored in msgpack. Additionally, the binary to decimal conversion required to serialise the coordinates can lose precision and create broken geometries.
-* [ORC](https://orc.apache.org/) is a columnar storage format designed for use with Hadoop and Hive, and is designed for extracting matching rows from a large file. However, it lacks much language support outside of Java, making it difficult to work with in the mostly-Python tilezen system.
+* [ORC](https://orc.apache.org/) is a columnar storage format designed for use with Hadoop and Hive, and is designed for extracting matching rows from a large file. However, it lacks much language support outside of Java, making it difficult to work with in the mostly-Python Tilezen system.
