@@ -21,7 +21,7 @@ class RouteIndex(object):
         self.inverted = defaultdict(list)
         self.routes = dict()
 
-    def add_relation(self, rel_id, way_off, rel_off, parts, members, tags):
+    def add_row(self, rel_id, way_off, rel_off, parts, members, tags):
         if tags is None:
             return
 

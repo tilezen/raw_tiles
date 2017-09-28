@@ -19,7 +19,7 @@ class HighwayIndex(object):
         self.inverted = defaultdict(set)
         self.highways = dict()
 
-    def add_way(self, way_id, nodes, tags):
+    def add_row(self, way_id, nodes, tags):
         if tags is None:
             return
 

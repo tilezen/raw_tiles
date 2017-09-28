@@ -24,38 +24,30 @@ def tile_contents(tile, table):
             yield obj
 
 
-def index_table(source, index_fn, *indices):
+def index_table(source, *indices):
     """
-    Index a table for the given tile coordinates. The `index_fn` is called
-    with each item in the tile for each of `*indices` which has that function
-    defined.
+    Index a table for the given tile coordinates. The function `add_row(...)`
+    is called with each item (a.k.a row) in the tile for each of `*indices`.
     """
 
-    # filter only indices which respond to index_fn
-    indexable = list()
-    for index in indices:
-        if callable(getattr(index, index_fn, None)):
-            indexable.append(index)
-
-    if indexable:
-        for obj in source:
-            for index in indexable:
-                getattr(index, index_fn)(*obj)
+    for obj in source:
+        for index in indices:
+            index.add_row(*obj)
 
 
-def index(get_table, *indices):
+def index(get_table, indices):
     """
     Fill the given indices with data from all known tables for the given tile.
+    Note that indices is expected to be a dict of table name mapping to a
+    sequence of index objects callable with `add_row(...)`.
     """
 
-    planet_osm_ways = get_table('planet_osm_ways')
-    index_table(planet_osm_ways, 'add_way', *indices)
-
-    planet_osm_rels = get_table('planet_osm_rels')
-    index_table(planet_osm_rels, 'add_relation', *indices)
-    for typ in ('point', 'line', 'polygon'):
-        source = get_table('planet_osm_' + typ)
-        index_table(source, 'add_feature', *indices)
+    for typ in ('ways', 'rels', 'point', 'line', 'polygon'):
+        table_name = 'planet_osm_' + typ
+        table = get_table(table_name)
+        table_indices = indices.get(table_name)
+        if table_indices:
+            index_table(table, *table_indices)
 
 
 ########################################################################
@@ -114,7 +106,11 @@ if __name__ == '__main__':
     rt_idx = RouteIndex()
     hw_idx = HighwayIndex()
     landuse_idx = FeatureTileIndex(tile, tile.z + 5, landuse_min_zoom)
-    index(get_table, rt_idx, hw_idx, landuse_idx)
+    index(get_table, {
+        'planet_osm_rels': [rt_idx],
+        'planet_osm_ways': [hw_idx],
+        'planet_osm_polygon': [landuse_idx],
+    })
 
     for arg in sys.argv[2:]:
         typ = arg[0]

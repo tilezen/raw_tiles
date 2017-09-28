@@ -48,7 +48,7 @@ class FeatureTileIndex(object):
 
         self.tile_index = defaultdict(list)
 
-    def add_feature(self, fid, shape_wkb, props):
+    def add_row(self, fid, shape_wkb, props):
         # the incoming shape will be WKB and we need to parse it.
         shape = _LazyShape(shape_wkb)
 
