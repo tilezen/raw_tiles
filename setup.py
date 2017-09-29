@@ -1,7 +1,7 @@
 try:
-    from setuptools import setup
+    from setuptools import setup, find_packages
 except ImportError:
-    from distutils.core import setup
+    from distutils.core import setup, find_packages
 
 config = {
     'description': 'Raw Tiles',
@@ -17,7 +17,7 @@ config = {
         'msgpack-python',
         'boto3'
     ],
-    'packages': ['raw_tiles'],
+    'packages': find_packages(exclude=['ez_setup', 'examples', 'tests']),
     'scripts': [],
     'name': 'raw_tiles',
     'test_suite': 'tests',
