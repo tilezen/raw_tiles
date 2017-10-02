@@ -16,17 +16,21 @@ def mkdir_p(path):
 
 class LocalSink(object):
 
-    def __init__(self, base_dir, formatter):
+    def __init__(self, base_dir, ext):
         self.base_dir = base_dir
-        self.formatter = formatter
+        self.ext = ext
 
-    def create_file(self, schema, table, tile):
-        file_dir = os.path.join(self.base_dir, schema, table,
+    def make_fs_path(self, tile, fmt_name):
+        """return a pair of directory and filename paths"""
+        file_dir = os.path.join(self.base_dir, fmt_name,
                                 str(tile.z), str(tile.x))
-        ext = self.formatter.extension()
+        path = os.path.join(file_dir, '%d%s' % (tile.y, self.ext))
+        return file_dir, path
 
-        # ensure directory exists to take tile file
-        mkdir_p(file_dir)
-
-        io = open(os.path.join(file_dir, "%d.%s" % (tile.y, ext)), 'wb')
-        return self.formatter.create(io)
+    def __call__(self, rawr_tile):
+        for fmt_data in rawr_tile.all_formatted_data:
+            dir_path, file_path = self.make_fs_path(
+                    rawr_tile.tile, fmt_data.name)
+            mkdir_p(dir_path)
+            with open(file_path, 'wb') as fp:
+                fp.write(fmt_data.data)

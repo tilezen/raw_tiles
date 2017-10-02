@@ -28,6 +28,3 @@ class Gzip(object):
         gz = GzipFile(None, 'wb', self.compression_level, io)
         buf = BufferedWriter(gz, buffer_size=BUFFER_SIZE)
         return self.formatter.create(buf)
-
-    def extension(self):
-        return self.formatter.extension() + ".gz"

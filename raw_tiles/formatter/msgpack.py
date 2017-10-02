@@ -20,6 +20,3 @@ class File(object):
 class Msgpack(object):
     def create(self, io):
         return File(io)
-
-    def extension(self):
-        return "msgpack"

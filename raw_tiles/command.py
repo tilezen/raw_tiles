@@ -1,7 +1,8 @@
-from raw_tiles.formatter.msgpack import Msgpack
 from raw_tiles.formatter.gzip import Gzip
-from raw_tiles.source.osm import OsmSource
+from raw_tiles.formatter.msgpack import Msgpack
+from raw_tiles.gen import RawrGenerator
 from raw_tiles.sink.local import LocalSink
+from raw_tiles.source.osm import OsmSource
 from raw_tiles.tile import Tile
 
 
@@ -59,9 +60,10 @@ if __name__ == '__main__':
 
     src = OsmSource(args.dbparams)
     fmt = Gzip(Msgpack())
-    sink = LocalSink('tiles', fmt)
+    sink = LocalSink('tiles', '.msgpack.gz')
+    rawr_gen = RawrGenerator(src, fmt, sink)
 
     for x in x_range:
         for y in y_range:
             tile = Tile(z, x, y)
-            src.write(sink, tile)
+            rawr_gen(tile)
