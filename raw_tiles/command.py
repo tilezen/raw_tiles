@@ -2,6 +2,7 @@ from raw_tiles.formatter.gzip import Gzip
 from raw_tiles.formatter.msgpack import Msgpack
 from raw_tiles.gen import RawrGenerator
 from raw_tiles.sink.local import LocalSink
+from raw_tiles.source.conn import ConnectionContextManager
 from raw_tiles.source.osm import OsmSource
 from raw_tiles.tile import Tile
 
@@ -58,7 +59,8 @@ if __name__ == '__main__':
     x_range = parse_range(z, args.x)
     y_range = parse_range(z, args.y)
 
-    src = OsmSource(args.dbparams)
+    conn_ctx = ConnectionContextManager(args.dbparams)
+    src = OsmSource(conn_ctx)
     fmt = Gzip(Msgpack())
     sink = LocalSink('tiles', '.msgpack.gz')
     rawr_gen = RawrGenerator(src, fmt, sink)
