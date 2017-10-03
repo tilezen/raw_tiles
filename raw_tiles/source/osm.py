@@ -1,56 +1,65 @@
+from contextlib import closing
 from jinja2 import Environment, PackageLoader
+from raw_tiles import SourceLocation
 import psycopg2
-from contextlib import contextmanager
 
 
 class OsmSource(object):
+
     def __init__(self, dbparams, table_prefix='planet_osm_'):
+        # TODO maybe abstract out the dbparams and environment a bit?
+        # this makes it easier to test, and
+        # connections can be pooled
+        # templates can be reloaded in dev and cached in prod
+        self.dbparams = dbparams
         self.env = Environment(
             loader=PackageLoader('raw_tiles', 'source')
         )
         self.table_prefix = table_prefix
-        self.dbparams = dbparams
 
-    def _write_table(self, cur, make_file_fn, template, table, st_box2d=None):
-        tmp = self.env.get_template(template)
-        query = tmp.render(table=table, box=st_box2d)
+    def read_table(self, cur, template_name, table, st_box2d=None):
+        template = self.env.get_template(template_name)
+        query = template.render(table=table, box=st_box2d)
         cur.execute(query)
 
-        with make_file_fn(table) as fh:
-            for row in cur:
-                fh.write(*row)
+        rows = []
+        for row in cur:
+            fully_read_row = []
+            for col in row:
+                if isinstance(col, buffer):
+                    read_col = bytes(col)
+                else:
+                    read_col = col
+                fully_read_row.append(read_col)
+            rows.append(tuple(fully_read_row))
 
-    def _write_base_tables(self, cur, make_file_fn, st_box2d):
-        for suffix in ('point', 'line', 'polygon'):
-            table = self.table_prefix + suffix
-            self._write_table(cur, make_file_fn, 'base_table.sql', table,
-                              st_box2d)
+        return SourceLocation(table, rows)
 
-    def _write_ways(self, cur, make_file_fn):
-        self._write_table(cur, make_file_fn, 'ways.sql', 'planet_osm_ways')
-
-    def _write_relations(self, cur, make_file_fn):
-        self._write_table(cur, make_file_fn, 'relations.sql',
-                          'planet_osm_rels')
-
-    def write(self, sink, tile):
+    def __call__(self, tile):
         st_box2d = tile.box2d()
-        conn = psycopg2.connect(self.dbparams)
+        # close connection
+        with closing(psycopg2.connect(self.dbparams)) as conn:
+            # commit transaction
+            with conn as conn:
+                # cleanup cursor resources
+                with conn.cursor() as cur:
 
-        @contextmanager
-        def make_file(table):
-            fh = sink.create_file('osm', table, tile)
-            yield fh
-            fh.close()
+                    for suffix in ('point', 'line', 'polygon'):
+                        table = self.table_prefix + suffix
+                        base_table_data = self.read_table(
+                                cur, 'base_table.sql', table, st_box2d)
+                        yield base_table_data
 
-        with conn.cursor() as cur:
-            self._write_base_tables(cur, make_file, st_box2d)
+                    # set up temporary tables that relations and ways will both
+                    # need and share info.
+                    tmp = self.env.get_template('setup.sql')
+                    query = tmp.render(box=st_box2d)
+                    cur.execute(query)
 
-            # set up temporary tables that relations and ways will both need
-            # and share info.
-            tmp = self.env.get_template('setup.sql')
-            query = tmp.render(box=st_box2d)
-            cur.execute(query)
+                    ways_table = self.read_table(
+                            cur, 'ways.sql', 'planet_osm_ways')
+                    yield ways_table
 
-            self._write_ways(cur, make_file)
-            self._write_relations(cur, make_file)
+                    rels_table = self.read_table(
+                            cur, 'relations.sql', 'planet_osm_rels')
+                    yield rels_table
