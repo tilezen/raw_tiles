@@ -1,17 +1,13 @@
-from contextlib import closing
 from jinja2 import Environment, PackageLoader
 from raw_tiles import SourceLocation
-import psycopg2
 
 
 class OsmSource(object):
 
-    def __init__(self, dbparams, table_prefix='planet_osm_'):
-        # TODO maybe abstract out the dbparams and environment a bit?
-        # this makes it easier to test, and
-        # connections can be pooled
+    def __init__(self, conn_ctx, table_prefix='planet_osm_'):
+        # TODO maybe abstract out the environment a bit?
         # templates can be reloaded in dev and cached in prod
-        self.dbparams = dbparams
+        self.conn_ctx = conn_ctx
         self.env = Environment(
             loader=PackageLoader('raw_tiles', 'source')
         )
@@ -37,8 +33,8 @@ class OsmSource(object):
 
     def __call__(self, tile):
         st_box2d = tile.box2d()
-        # close connection
-        with closing(psycopg2.connect(self.dbparams)) as conn:
+        # grab connection
+        with self.conn_ctx() as conn:
             # commit transaction
             with conn as conn:
                 # cleanup cursor resources
