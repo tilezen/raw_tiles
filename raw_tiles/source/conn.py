@@ -10,7 +10,12 @@ class OnDemandConnectionContext(object):
         self.conn = None
 
     def __enter__(self):
-        self.conn = psycopg2.connect(self.dbparams)
+        if isinstance(self.dbparams, dict):
+            self.conn = psycopg2.connect(**self.dbparams)
+        else:
+            assert isinstance(self.dbparams, (unicode, str)), \
+                    'Unknown dbparams: %s' % self.dbparams
+            self.conn = psycopg2.connect(self.dbparams)
         return self.conn
 
     def __exit__(self, type, value, traceback):
