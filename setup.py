@@ -17,6 +17,8 @@ config = {
         'msgpack-python',
         'boto3'
     ],
+    'include_package_data': True,
+    'package_data': {'raw_tiles.source': ['*.sql']},
     'packages': find_packages(exclude=['ez_setup', 'examples', 'tests']),
     'scripts': [],
     'name': 'raw_tiles',
