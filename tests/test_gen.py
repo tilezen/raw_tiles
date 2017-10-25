@@ -10,7 +10,8 @@ class MockSource(object):
     def __call__(self, tile):
         from raw_tiles import SourceLocation
         location = SourceLocation(self.name, self.records)
-        return [location]
+        timing = {}
+        return [location], timing
 
 
 class MockSink(object):
