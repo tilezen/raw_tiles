@@ -19,9 +19,14 @@ class RawrGenerator(object):
             buf = StringIO()
             writer = self.formatter.create(buf)
             for record in source_location.records:
-                writer.write(record)
-            writer.close()
+                # record is a tuple here, and writer.write takes varargs, so
+                # we need to unpack the tuple.
+                writer.write(*record)
+            writer.flush()
             data = buf.getvalue()
+            # close writer after we get the buffer value, so that the writer
+            # hasn't closed the buffer yet.
+            writer.close()
             fmt_data = FormattedData(source_location.name, data)
             all_fmt_data.append(fmt_data)
 

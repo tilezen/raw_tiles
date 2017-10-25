@@ -12,8 +12,10 @@ class File(object):
                      for x in args)
         self.io.write(self.packer.pack(args))
 
-    def close(self):
+    def flush(self):
         self.io.flush()
+
+    def close(self):
         self.io.close()
 
 
