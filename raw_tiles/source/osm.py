@@ -1,5 +1,6 @@
 from jinja2 import Environment, PackageLoader
 from raw_tiles import SourceLocation
+from raw_tiles.util import time_block
 
 
 class OsmSource(object):
@@ -32,6 +33,9 @@ class OsmSource(object):
         return SourceLocation(table, rows)
 
     def __call__(self, tile):
+        source_locations = []
+        timing = {}
+
         st_box2d = tile.box2d()
         # grab connection
         with self.conn_ctx() as conn:
@@ -42,20 +46,26 @@ class OsmSource(object):
 
                     for suffix in ('point', 'line', 'polygon'):
                         table = self.table_prefix + suffix
-                        base_table_data = self.read_table(
+                        with time_block(timing, table):
+                            base_table_data = self.read_table(
                                 cur, 'base_table.sql', table, st_box2d)
-                        yield base_table_data
+                        source_locations.append(base_table_data)
 
                     # set up temporary tables that relations and ways will both
                     # need and share info.
-                    tmp = self.env.get_template('setup.sql')
-                    query = tmp.render(box=st_box2d)
-                    cur.execute(query)
+                    with time_block(timing, 'setup'):
+                        tmp = self.env.get_template('setup.sql')
+                        query = tmp.render(box=st_box2d)
+                        cur.execute(query)
 
-                    ways_table = self.read_table(
+                    with time_block(timing, 'planet_osm_ways'):
+                        ways_table = self.read_table(
                             cur, 'ways.sql', 'planet_osm_ways')
-                    yield ways_table
+                    source_locations.append(ways_table)
 
-                    rels_table = self.read_table(
+                    with time_block(timing, 'planet_osm_rels'):
+                        rels_table = self.read_table(
                             cur, 'relations.sql', 'planet_osm_rels')
-                    yield rels_table
+                    source_locations.append(rels_table)
+
+            return source_locations, timing
