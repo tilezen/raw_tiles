@@ -35,10 +35,11 @@ class RawrGenerator(object):
                         # varargs, so we need to unpack the tuple.
                         writer.write(*record)
                     writer.flush()
-                    data = buf.getvalue()
-                    # close writer after we get the buffer value, so that the
-                    # writer hasn't closed the buffer yet.
+                    # NOTE: it's important that the writer be closed *before*
+                    # we get the value from the buffer, otherwise the data may
+                    # not be terminated correctly
                     writer.close()
+                    data = buf.getvalue()
                     fmt_data = FormattedData(source_location.name, data)
                     all_fmt_data.append(fmt_data)
         timing['format'] = format_timing
