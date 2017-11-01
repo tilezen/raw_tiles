@@ -1,4 +1,3 @@
-from raw_tiles.formatter.gzip import Gzip
 from raw_tiles.formatter.msgpack import Msgpack
 from raw_tiles.gen import RawrGenerator
 from raw_tiles.sink.local import LocalSink
@@ -61,8 +60,8 @@ if __name__ == '__main__':
 
     conn_ctx = ConnectionContextManager(args.dbparams)
     src = OsmSource(conn_ctx)
-    fmt = Gzip(Msgpack())
-    sink = LocalSink('tiles', '.msgpack.gz')
+    fmt = Msgpack()
+    sink = LocalSink('tiles', '.msgpack')
     rawr_gen = RawrGenerator(src, fmt, sink)
 
     for x in x_range:

@@ -1,25 +1,23 @@
 from __future__ import absolute_import
-import gzip
 from msgpack import Unpacker
 from raw_tiles.tile import Tile
-from io import BufferedReader
 from raw_tiles.index.features import FeatureTileIndex
 from raw_tiles.index.highway import HighwayIndex
 from raw_tiles.index.routes import RouteIndex
 
 
-def tile_contents(tile, table):
+def tile_contents(tile, table, extension):
     """
-    Generator yielding each item in a gzipped msgpack format file.
+    Generator yielding each item in a msgpack format file.
 
     TODO: This should be generalised? Perhaps move into formatter classes?
     """
 
-    file_name = 'tiles/osm/%s/%d/%d/%d.msgpack.gz' % \
-        (table, tile.z, tile.x, tile.y)
+    file_name = 'tiles/osm/%s/%d/%d/%d%s' % \
+        (table, tile.z, tile.x, tile.y, extension)
 
-    with BufferedReader(gzip.open(file_name, 'rb')) as gz:
-        unpacker = Unpacker(file_like=gz)
+    with open(file_name, 'rb') as f:
+        unpacker = Unpacker(file_like=f)
         for obj in unpacker:
             yield obj
 
@@ -76,6 +74,8 @@ def landuse_min_zoom(fid, shape, props):
         return calculate_1px_zoom(shape.area)
     else:
         return None
+
+
 ########################################################################
 # END COPY-PASTE
 ########################################################################
@@ -99,9 +99,10 @@ if __name__ == '__main__':
 
     z, x, y = map(int, sys.argv[1].split("/"))
     tile = Tile(z, x, y)
+    extension = '.msgpack'
 
     def get_table(table):
-        return tile_contents(tile, table)
+        return tile_contents(tile, table, extension)
 
     rt_idx = RouteIndex()
     hw_idx = HighwayIndex()
