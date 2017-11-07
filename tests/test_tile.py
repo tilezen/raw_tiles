@@ -64,3 +64,12 @@ class TileTest(unittest.TestCase):
             Tile(16, 32768, 32768),
         ])
         self.assertEquals(expected, cov)
+
+    def test_coverage_empty(self):
+        # an empty geometry should have no coverage
+        from raw_tiles.tile import Tile, shape_tile_coverage
+        from shapely.geometry.polygon import Polygon
+
+        empty = Polygon([])
+        cov = shape_tile_coverage(empty, 16, Tile(0, 0, 0))
+        self.assertEquals(set([]), cov)

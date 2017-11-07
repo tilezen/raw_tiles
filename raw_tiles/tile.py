@@ -64,6 +64,10 @@ def shape_tile_coverage(shape, zoom, root_tile):
 
     assert root_tile.z <= zoom
 
+    # if the geometry is empty, then it covers no tiles.
+    if shape.is_empty:
+        return set()
+
     minx, miny, maxx, maxy = shape.bounds
     max_coord = 2 ** zoom
     rx = int(root_tile.x)
