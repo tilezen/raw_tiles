@@ -1,0 +1,10 @@
+dependencies:
+  pre:
+    - pip install -Ur requirements.txt
+    - pip install -U flake8
+    - python setup.py develop
+
+test:
+  override:
+    - find . -not -path '*/.eggs/*' -name '*.py' | xargs flake8
+    - python setup.py test

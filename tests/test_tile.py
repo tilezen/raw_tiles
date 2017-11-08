@@ -70,6 +70,6 @@ class TileTest(unittest.TestCase):
         from raw_tiles.tile import Tile, shape_tile_coverage
         from shapely.geometry.polygon import Polygon
 
-        empty = Polygon([])
+        empty = Polygon()
         cov = shape_tile_coverage(empty, 16, Tile(0, 0, 0))
         self.assertEquals(set([]), cov)
