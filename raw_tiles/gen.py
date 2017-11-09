@@ -13,13 +13,14 @@ class RawrGenerator(object):
         self.formatter = formatter
         self.sink = sink
 
-    def __call__(self, tile):
+    def __call__(self, table_reader, tile):
 
         timing = {}
 
         source_timing = {}
         with time_block(source_timing, 'total'):
-            source_locations, source_specific_timing = self.source(tile)
+            source_locations, source_specific_timing = self.source(
+                table_reader, tile)
         source_timing.update(source_specific_timing)
         timing['source'] = source_timing
 

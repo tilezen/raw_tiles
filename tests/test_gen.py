@@ -7,7 +7,7 @@ class MockSource(object):
         self.name = name
         self.records = records
 
-    def __call__(self, tile):
+    def __call__(self, table_reader, tile):
         from raw_tiles import SourceLocation
         location = SourceLocation(self.name, self.records)
         timing = {}
@@ -33,11 +33,12 @@ class GeneratorTest(unittest.TestCase):
         source = MockSource(source_name, source_data)
         formatter = Msgpack()
         sink = MockSink()
+        table_reader = None
 
         gen = RawrGenerator(source, formatter, sink)
 
         tile = Tile(0, 0, 0)
-        gen(tile)
+        gen(table_reader, tile)
 
         # check the format (structures) of the returned data. should be using
         # the namedtuple types at the top level of the raw_tiles module

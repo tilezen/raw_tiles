@@ -2,7 +2,10 @@ from raw_tiles.formatter.msgpack import Msgpack
 from raw_tiles.gen import RawrGenerator
 from raw_tiles.sink.local import LocalSink
 from raw_tiles.source.conn import ConnectionContextManager
+from raw_tiles.source.generic import GenericTableSource
+from raw_tiles.source.multi import MultiSource
 from raw_tiles.source.osm import OsmSource
+from raw_tiles.source.table_reader import TableReader
 from raw_tiles.tile import Tile
 
 
@@ -37,7 +40,7 @@ def parse_range(z, args):
     return xrange(lo, hi + 1)
 
 
-if __name__ == '__main__':
+def raw_tiles_main():
     import argparse
 
     parser = argparse.ArgumentParser(description='Generate RAWR tiles')
@@ -51,6 +54,13 @@ if __name__ == '__main__':
                         '(e.g: 0-8). Use * to indicate the whole range.')
 
     parser.add_argument('--dbparams', help='Database parameters')
+    parser.add_argument('--sources', nargs='?',
+                        default='osm,wof',
+                        help='The comma-separated list of sources to create '
+                        'RAWR tiles from.')
+
+    # TODO: build WOF & SHP on top of the generic table source.
+    # TODO: tests for the generic table source
 
     args = parser.parse_args()
 
@@ -59,12 +69,39 @@ if __name__ == '__main__':
     y_range = parse_range(z, args.y)
 
     conn_ctx = ConnectionContextManager(args.dbparams)
-    src = OsmSource(conn_ctx)
+
+    sources = []
+    for source_name in args.sources.split(','):
+        if source_name == 'osm':
+            sources.append(OsmSource())
+        elif source_name == 'wof':
+            sources.append(GenericTableSource('wof'))
+        elif source_name == 'water_polygons':
+            sources.append(GenericTableSource(
+                'water_polygons', bbox_expansion_factor=1.1))
+        elif source_name == 'land_polygons':
+            sources.append(GenericTableSource('land_polygons'))
+        else:
+            raise ValueError('No known source with name %r' % (source_name,))
+
+    src = MultiSource(sources)
     fmt = Msgpack()
     sink = LocalSink('tiles', '.msgpack')
     rawr_gen = RawrGenerator(src, fmt, sink)
 
-    for x in x_range:
-        for y in y_range:
-            tile = Tile(z, x, y)
-            rawr_gen(tile)
+    # grab connection
+    with conn_ctx() as conn:
+        # commit transaction
+        with conn as conn:
+            # cleanup cursor resources
+            with conn.cursor() as cur:
+                table_reader = TableReader(cur)
+
+                for x in x_range:
+                    for y in y_range:
+                        tile = Tile(z, x, y)
+                        rawr_gen(table_reader, tile)
+
+
+if __name__ == '__main__':
+    raw_tiles_main()
