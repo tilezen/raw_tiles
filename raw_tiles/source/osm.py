@@ -42,42 +42,44 @@ class OsmSource(object):
 
         return SourceLocation(table, rows)
 
-    def __call__(self, tile):
+    def _read_tables(self, tile, cur):
         source_locations = []
         timing = {}
 
         st_box2d = tile.box2d()
+        for suffix in ('point', 'line', 'polygon'):
+            table = self.table_prefix + suffix
+            with time_block(timing, table):
+                base_table_data = self.read_table(
+                    cur, 'base_table.sql', table, st_box2d)
+            source_locations.append(base_table_data)
+
+        # set up temporary tables that relations and ways will both
+        # need and share info.
+        with time_block(timing, 'setup'):
+            tmp = self.env.get_template('setup.sql')
+            query = tmp.render(box=st_box2d)
+            cur.execute(query)
+
+        with time_block(timing, 'planet_osm_ways'):
+            ways_table = self.read_table(
+                cur, 'ways.sql', 'planet_osm_ways')
+        source_locations.append(ways_table)
+
+        with time_block(timing, 'planet_osm_rels'):
+            rels_table = self.read_table(
+                cur, 'relations.sql', 'planet_osm_rels',
+                row_transform=convert_rels_null_tags_to_empty_list
+            )
+        source_locations.append(rels_table)
+
+    def __call__(self, tile):
         # grab connection
         with self.conn_ctx() as conn:
             # commit transaction
             with conn as conn:
                 # cleanup cursor resources
                 with conn.cursor() as cur:
+                    source_locations, timing = self._read_tables(tile, cur)
 
-                    for suffix in ('point', 'line', 'polygon'):
-                        table = self.table_prefix + suffix
-                        with time_block(timing, table):
-                            base_table_data = self.read_table(
-                                cur, 'base_table.sql', table, st_box2d)
-                        source_locations.append(base_table_data)
-
-                    # set up temporary tables that relations and ways will both
-                    # need and share info.
-                    with time_block(timing, 'setup'):
-                        tmp = self.env.get_template('setup.sql')
-                        query = tmp.render(box=st_box2d)
-                        cur.execute(query)
-
-                    with time_block(timing, 'planet_osm_ways'):
-                        ways_table = self.read_table(
-                            cur, 'ways.sql', 'planet_osm_ways')
-                    source_locations.append(ways_table)
-
-                    with time_block(timing, 'planet_osm_rels'):
-                        rels_table = self.read_table(
-                            cur, 'relations.sql', 'planet_osm_rels',
-                            row_transform=convert_rels_null_tags_to_empty_list
-                        )
-                    source_locations.append(rels_table)
-
-            return source_locations, timing
+        return source_locations, timing
