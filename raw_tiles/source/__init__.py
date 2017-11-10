@@ -3,13 +3,21 @@ from raw_tiles.source.multi import MultiSource
 from raw_tiles.source.osm import OsmSource
 
 
-def parse_sources(sources):
+DEFAULT_SOURCES = [
+    'osm',
+    'wof',
+    'water_polygons',
+    'land_polygons',
+]
+
+
+def parse_sources(source_names):
     sources = []
-    for source_name in sources:
+    for source_name in source_names:
         if source_name == 'osm':
             sources.append(OsmSource())
         elif source_name == 'wof':
-            sources.append(GenericTableSource('wof'))
+            sources.append(GenericTableSource('wof_neighbourhood'))
         elif source_name == 'water_polygons':
             sources.append(GenericTableSource(
                 'water_polygons', bbox_expansion_factor=1.1))

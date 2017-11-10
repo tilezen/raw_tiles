@@ -2,6 +2,7 @@ from raw_tiles.formatter.msgpack import Msgpack
 from raw_tiles.gen import RawrGenerator
 from raw_tiles.sink.local import LocalSink
 from raw_tiles.source.conn import ConnectionContextManager
+from raw_tiles.source import DEFAULT_SOURCES
 from raw_tiles.source import parse_sources
 from raw_tiles.source.table_reader import TableReader
 from raw_tiles.tile import Tile
@@ -53,11 +54,10 @@ def raw_tiles_main():
 
     parser.add_argument('--dbparams', help='Database parameters')
     parser.add_argument('--sources', nargs='?',
-                        default='osm,wof',
+                        default=','.join(DEFAULT_SOURCES),
                         help='The comma-separated list of sources to create '
                         'RAWR tiles from.')
 
-    # TODO: build WOF & SHP on top of the generic table source.
     # TODO: tests for the generic table source
 
     args = parser.parse_args()
