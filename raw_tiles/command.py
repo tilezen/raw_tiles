@@ -2,9 +2,7 @@ from raw_tiles.formatter.msgpack import Msgpack
 from raw_tiles.gen import RawrGenerator
 from raw_tiles.sink.local import LocalSink
 from raw_tiles.source.conn import ConnectionContextManager
-from raw_tiles.source.generic import GenericTableSource
-from raw_tiles.source.multi import MultiSource
-from raw_tiles.source.osm import OsmSource
+from raw_tiles.source import parse_sources
 from raw_tiles.source.table_reader import TableReader
 from raw_tiles.tile import Tile
 
@@ -70,21 +68,7 @@ def raw_tiles_main():
 
     conn_ctx = ConnectionContextManager(args.dbparams)
 
-    sources = []
-    for source_name in args.sources.split(','):
-        if source_name == 'osm':
-            sources.append(OsmSource())
-        elif source_name == 'wof':
-            sources.append(GenericTableSource('wof'))
-        elif source_name == 'water_polygons':
-            sources.append(GenericTableSource(
-                'water_polygons', bbox_expansion_factor=1.1))
-        elif source_name == 'land_polygons':
-            sources.append(GenericTableSource('land_polygons'))
-        else:
-            raise ValueError('No known source with name %r' % (source_name,))
-
-    src = MultiSource(sources)
+    src = parse_sources(args.sources.split(','))
     fmt = Msgpack()
     sink = LocalSink('tiles', '.msgpack')
     rawr_gen = RawrGenerator(src, fmt, sink)

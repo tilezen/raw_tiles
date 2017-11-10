@@ -1,0 +1,29 @@
+from raw_tiles.source.generic import GenericTableSource
+from raw_tiles.source.multi import MultiSource
+from raw_tiles.source.osm import OsmSource
+
+
+def parse_sources(sources):
+    sources = []
+    for source_name in sources:
+        if source_name == 'osm':
+            sources.append(OsmSource())
+        elif source_name == 'wof':
+            sources.append(GenericTableSource('wof'))
+        elif source_name == 'water_polygons':
+            sources.append(GenericTableSource(
+                'water_polygons', bbox_expansion_factor=1.1))
+        elif source_name == 'land_polygons':
+            sources.append(GenericTableSource('land_polygons'))
+        else:
+            raise ValueError('No known source with name %r' % (source_name,))
+
+    # need at least one source
+    assert sources
+
+    # no point wrapping a single source
+    if len(sources) == 1:
+        return sources[0]
+
+    else:
+        return MultiSource(sources)
