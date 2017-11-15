@@ -9,13 +9,10 @@ SELECT
       'mz_n_photos', n_photos,
       'area', area,
       'is_landuse_aoi', is_landuse_aoi,
-      'placetype', wof_np.placetype_string
-    ) AS __properties__,
-
-    jsonb_build_object(
+      'placetype', wof_np.placetype_string,
       'min_zoom', min_zoom,
       'max_zoom', max_zoom
-    ) AS __places_properties__
+    ) AS __properties__
 
 FROM wof_neighbourhood wof_n
 

@@ -1,7 +1,6 @@
 SELECT
     gid AS __id__,
     ST_AsBinary(ST_Intersection(the_geom, {{box}})) AS __geometry__,
-    ST_AsBinary(mz_label_placement) AS __label__,
     jsonb_build_object(
       'source', 'openstreetmapdata.com',
       'area', way_area,
