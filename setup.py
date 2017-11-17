@@ -23,6 +23,11 @@ config = {
     'scripts': [],
     'name': 'raw_tiles',
     'test_suite': 'tests',
+    'entry_points': {
+        'console_scripts': [
+            'raw_tiles = raw_tiles.command:raw_tiles_main',
+        ]
+    },
 }
 
 setup(**config)
