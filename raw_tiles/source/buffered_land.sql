@@ -3,7 +3,9 @@ SELECT
     ST_AsBinary(geom) AS __geometry__,
     jsonb_build_object(
       'source', 'tilezen.org',
-      'min_zoom', scalerank
+      'min_zoom', scalerank,
+      'kind', 'maritime',
+      'maritime_boundary', TRUE
     ) AS __properties__
 
 FROM (
