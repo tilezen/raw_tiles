@@ -8,6 +8,7 @@ DEFAULT_SOURCES = [
     'wof',
     'water_polygons',
     'land_polygons',
+    'buffered_land',
     'ne_10m_urban_areas',
 ]
 
@@ -24,6 +25,8 @@ def parse_sources(source_names):
                 'water_polygons', bbox_expansion_factor=1.1))
         elif source_name == 'land_polygons':
             sources.append(GenericTableSource('land_polygons'))
+        elif source_name == 'buffered_land':
+            sources.append(GenericTableSource('buffered_land'))
         elif source_name == 'ne_10m_urban_areas':
             sources.append(GenericTableSource('ne_10m_urban_areas'))
         else:
