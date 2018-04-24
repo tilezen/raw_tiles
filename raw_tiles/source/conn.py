@@ -1,4 +1,5 @@
 import psycopg2
+import random
 
 
 class OnDemandConnectionContext(object):
@@ -11,7 +12,17 @@ class OnDemandConnectionContext(object):
 
     def __enter__(self):
         if isinstance(self.dbparams, dict):
-            self.conn = psycopg2.connect(**self.dbparams)
+            params = self.dbparams
+
+            # if multiple hosts are provided, select one at random
+            host = params.get('host')
+            if host and isinstance(host, list):
+                host = random.choice(host)
+                params = params.copy()
+                params['host'] = host
+
+            self.conn = psycopg2.connect(**params)
+
         else:
             assert isinstance(self.dbparams, (unicode, str)), \
                     'Unknown dbparams: %s' % self.dbparams
