@@ -99,3 +99,14 @@ There are other serialisation formats which could be used, but at this point hav
 * [Google FlatBuffers](https://google.github.io/flatbuffers/), which stores data in a `mmap`-friendly way. This means the files are somewhat larger, but that it would be possible to access data within the file more easily (e.g: sub-tiling for geographic indexing). FlatBuffers would also require a schema. It's not clear at this point whether having random access to data within the raw(r) tile would be a benefit worth trading off the file size for.
 * [GeoJSON](http://geojson.org/) has a huge advantage of easy readability, but is slower to parse than the WKB stored in msgpack. Additionally, the binary to decimal conversion required to serialise the coordinates can lose precision and create broken geometries.
 * [ORC](https://orc.apache.org/) is a columnar storage format designed for use with Hadoop and Hive, and is designed for extracting matching rows from a large file. However, it lacks much language support outside of Java, making it difficult to work with in the mostly-Python Tilezen system.
+
+Architecture
+------------
+
+![RAWR tiles system architecture diagram](doc/architecture.png)
+
+The diagram above represents one way in which RAWR tiles can be used in a "global rendering" system, and is how the current [Nextzen](https://www.nextzen.org/) tile service renders tiles.
+
+This starts with (on the left) data being loaded from [OpenStreetMap](https://openstreetmap.org/), [Natural Earth](http://www.naturalearthdata.com/) and Tilezen curated data (we also load data from [openstreetmapdata.com](http://openstreetmapdata.com/), but this is derived from OSM and omitted from the diagram for brevity). The data is loaded into a [PostGIS](https://postgis.net/) database, and replicas of that are made to scale out read load.
+
+The [`tilequeue`](https://github.com/tilezen/tilequeue) software is then used to create RAWR tiles from the database, orchestrated using [AWS Batch](https://aws.amazon.com/batch/) and stored in an [AWS S3](https://aws.amazon.com/s3/) bucket. The database replicas are also used to render (via Batch) the low zoom (`zoom < 10`) tiles directly into the meta tiles bucket. The RAWR tiles are rendered (again, via Batch) from the RAWR tiles directly to meta tiles, without needing to contact the database. Meta tiles are served to the outside world via [`tapalcatl-py`](https://github.com/tilezen/tapalcatl-py), which runs on [AWS Lambda](https://aws.amazon.com/lambda/) and unpacks the meta tiles to the individual tiles.
