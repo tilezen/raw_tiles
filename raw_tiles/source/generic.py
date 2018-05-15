@@ -1,6 +1,7 @@
 from raw_tiles.util import bbox_for_tile
 from raw_tiles.util import st_box2d_for_bbox
 from raw_tiles.util import time_block
+from sys import exc_info
 
 
 # returns a geometry which is the given bounds expanded by `factor`. that is,
@@ -39,8 +40,15 @@ class GenericTableSource(object):
                 box2d = tile.box2d()
 
             template_name = self.table_name + ".sql"
-            table = table_reader.read_table(
-                template_name, self.table_name, st_box2d=box2d)
+
+            try:
+                table = table_reader.read_table(
+                    template_name, self.table_name, st_box2d=box2d)
+            except Exception as e:
+                raise type(e), \
+                    '%s in table %r' % (str(e), self.table_name), \
+                    exc_info()[2]
+
         source_locations.append(table)
 
         return source_locations, timing
