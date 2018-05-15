@@ -10,6 +10,7 @@ DEFAULT_SOURCES = [
     'land_polygons',
     'buffered_land',
     'ne_10m_urban_areas',
+    'admin_areas',
 ]
 
 
@@ -29,6 +30,8 @@ def parse_sources(source_names):
             sources.append(GenericTableSource('buffered_land'))
         elif source_name == 'ne_10m_urban_areas':
             sources.append(GenericTableSource('ne_10m_urban_areas'))
+        elif source_name == 'admin_areas':
+            sources.append(GenericTableSource('admin_areas'))
         else:
             raise ValueError('No known source with name %r' % (source_name,))
 
