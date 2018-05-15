@@ -3,7 +3,7 @@ SELECT
     ST_AsBinary(geom) AS __geometry__,
     jsonb_build_object(
       'source', 'tilezen.org',
-      'min_zoom', scalerank,
+      'min_zoom', 0,
       'kind', 'maritime',
       'maritime_boundary', TRUE
     ) AS __properties__
@@ -14,8 +14,7 @@ FROM (
     -- extract only polygons. we might get linestring and point fragments when
     -- the box and geometry touch but don't overlap. we don't want these, so
     -- want to throw them away.
-    ST_CollectionExtract(ST_Intersection(the_geom, {{box}}), 3) AS geom,
-    scalerank
+    ST_CollectionExtract(ST_Intersection(the_geom, {{box}}), 3) AS geom
 
   FROM buffered_land
 
@@ -24,5 +23,4 @@ FROM (
 ) maybe_empty_intersections
 
 WHERE
-  NOT ST_IsEmpty(the_geom)
-  
+  NOT ST_IsEmpty(geom)
