@@ -21,6 +21,8 @@ FROM (
 
   WHERE
     the_geom && {{box}} AND
+    -- NOTE: this isn't a typo, it's the result of importing this from a shape
+    -- file, where column names are only allowed to be 8 characters wide!
     admin_leve = '2'
 ) maybe_empty_intersections
 
