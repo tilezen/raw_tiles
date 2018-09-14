@@ -1,7 +1,7 @@
 v1.0.0
 ------
 
-* Added this `CHANGELOG.md`.
+* Add this `CHANGELOG.md`.
 * Add MIT licence text in `LICENSE.md`.
 * Adjust WOF source name (now `.org`, not `.mapzen.com`). [PR #21](https://github.com/tilezen/raw_tiles/pull/21).
 * Add **buffered_land** table to RAWR sources default with source SQL needed to set `kind` and `maritime_boundary` required for vector-datasource filters and transforms. [PR #20](https://github.com/tilezen/raw_tiles/pull/20).
