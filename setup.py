@@ -9,7 +9,7 @@ config = {
     'url': 'https://github.com/tilezen/raw_tiles',
     'download_url': 'https://github.com/tilezen/raw_tiles/releases',
     'author_email': 'zerebubuth@gmail.com',
-    'version': '1.0',
+    'version': '1.0.1',
     'install_requires': [
         'nose',
         'psycopg2',

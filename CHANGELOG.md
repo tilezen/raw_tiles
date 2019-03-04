@@ -1,3 +1,8 @@
+v1.0.1
+------
+
+* Update `setup.py` version to match tagged version. [PR #28](https://github.com/tilezen/raw_tiles/pull/28) and [Issue #27](https://github.com/tilezen/raw_tiles/issues/27).
+
 v1.0.0
 ------
 
