@@ -6,10 +6,10 @@ except ImportError:
 config = {
     'description': 'Raw Tiles',
     'author': 'Matt Amos',
-    'url': 'URL to get it at.',
-    'download_url': 'Where to download it.',
-    'author_email': 'matt.amos@mapzen.com',
-    'version': '0.1',
+    'url': 'https://github.com/tilezen/raw_tiles',
+    'download_url': 'https://github.com/tilezen/raw_tiles/releases',
+    'author_email': 'zerebubuth@gmail.com',
+    'version': '1.0',
     'install_requires': [
         'nose',
         'psycopg2',
