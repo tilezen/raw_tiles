@@ -2,7 +2,7 @@ SELECT
     gid AS __id__,
     ST_AsBinary(geom) AS __geometry__,
     jsonb_build_object(
-      'source', 'openstreetmapdata.com',
+      'source', 'osmdata.openstreetmap.de',
       'area', way_area,
       'min_zoom', mz_water_min_zoom
     ) AS __properties__
