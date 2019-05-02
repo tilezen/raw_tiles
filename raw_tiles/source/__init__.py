@@ -11,6 +11,7 @@ DEFAULT_SOURCES = [
     'buffered_land',
     'ne_10m_urban_areas',
     'admin_areas',
+    'wikidata',
 ]
 
 
@@ -32,6 +33,8 @@ def parse_sources(source_names):
             sources.append(GenericTableSource('ne_10m_urban_areas'))
         elif source_name == 'admin_areas':
             sources.append(GenericTableSource('admin_areas'))
+        elif source_name == 'wikidata':
+            sources.append(GenericTableSource('wikidata'))
         else:
             raise ValueError('No known source with name %r' % (source_name,))
 
