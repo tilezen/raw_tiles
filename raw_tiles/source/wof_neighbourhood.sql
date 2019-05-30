@@ -10,6 +10,7 @@ SELECT
       'area', area,
       'is_landuse_aoi', is_landuse_aoi,
       'placetype', wof_np.placetype_string,
+      'wikidata', wikidata,
       'min_zoom', min_zoom,
       'max_zoom', max_zoom
     ) AS __properties__
