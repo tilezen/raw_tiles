@@ -28,6 +28,6 @@ LEFT JOIN (
     SELECT * FROM (
       SELECT wikidataid, (each(hstore(ne_pp))).key, (each(hstore(ne_pp))).value
       FROM ne_10m_populated_places ne_pp
-    ) x WHERE KEY LIKE 'fclass_%' AND VALUE IS NOT NULL
+    ) x WHERE (key = 'featurecla' OR key LIKE 'fclass_%') AND VALUE IS NOT NULL
   ) y GROUP BY wikidataid
 ) p ON p.wikidataid = x.wikidata;
