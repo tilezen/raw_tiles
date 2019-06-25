@@ -1,3 +1,11 @@
+v1.1.0
+------
+
+* Change the `source` for OSM land/water polygons. The data which used to be at OpenStreetMapData.com is now hosted by FOSSGIS at osmdata.openstreetmap.de. [PR #30](https://github.com/tilezen/raw_tiles/pull/30)
+* Added the `wikidata` "table" in RAWR tiles. This adds properties from the [Wikidata](https://www.wikidata.org/wiki/Wikidata:Main_Page) project to enrich the data we have about airports (although there's nothing airport-specific about the `raw_tiles` part the code). [PR #31](https://github.com/tilezen/raw_tiles/pull/31)
+* Include WOF wikidata ID in the RAWR tile to match the `vector-datasource` queries. [PR #32](https://github.com/tilezen/raw_tiles/pull/32)
+* Add disputed admin capitals from Natural Earth as a type of "wikidata". This pulls in the `FCLASS_*` and `FEATURECLA` from Natural Earth, so that we can backfill this data where it's not present in OSM and also apply viewpoints. [PR #33](https://github.com/tilezen/raw_tiles/pull/33) and [PR #34](https://github.com/tilezen/raw_tiles/pull/34)
+
 v1.0.1
 ------
 
