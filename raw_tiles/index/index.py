@@ -119,33 +119,33 @@ if __name__ == '__main__':
         if typ == 'n':
             elt_id = int(arg[1:])
             highways = hw_idx(elt_id)
-            print ">>> NODE %d" % (elt_id,)
+            print(">>> NODE %d" % (elt_id,))
             for highway in highways:
                 hw_type = highway.tags.get('highway')
                 name = highway.tags.get('name')
-                print "  %r\t%r" % (hw_type, name)
-            print
+                print("  %r\t%r" % (hw_type, name))
+            print()
 
         elif typ == 'w':
             elt_id = int(arg[1:])
             routes = rt_idx(elt_id)
-            print ">>> WAY %d" % (elt_id,)
+            print(">>> WAY %d" % (elt_id,))
             for route in routes:
                 rt_type = route.tags.get('route')
                 name = route.tags.get('name')
-                print "  %r\t%r" % (rt_type, name)
-            print
+                print("  %r\t%r" % (rt_type, name))
+            print()
 
         elif typ == 't':
             t = Tile(*map(int, arg[1:].split("/")))
             features = landuse_idx(t)
-            print ">>> TILE %r" % (t,)
+            print(">>> TILE %r" % (t,))
             for feature in features:
                 fid = feature.id
                 landuse = feature.properties.get('landuse')
                 name = feature.properties.get('name')
-                print "  %r\t%r\t%r" % (fid, landuse, name)
-            print
+                print("  %r\t%r\t%r" % (fid, landuse, name))
+            print()
 
         else:
             raise RuntimeError("Don't understand element type %r in "

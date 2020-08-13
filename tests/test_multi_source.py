@@ -28,10 +28,10 @@ class TestMultiSource(unittest.TestCase):
 
         locs, times = multi(table_reader, Tile(0, 0, 0))
 
-        self.assertEquals(2, len(locs))
-        self.assertEquals("src1", locs[0].name)
-        self.assertEquals(["record1"], locs[0].records)
-        self.assertEquals("src2", locs[1].name)
-        self.assertEquals(["record2"], locs[1].records)
-        self.assertEquals(123, times.get("timing1"))
-        self.assertEquals(321, times.get("timing2"))
+        self.assertEqual(2, len(locs))
+        self.assertEqual("src1", locs[0].name)
+        self.assertEqual(["record1"], locs[0].records)
+        self.assertEqual("src2", locs[1].name)
+        self.assertEqual(["record2"], locs[1].records)
+        self.assertEqual(123, times.get("timing1"))
+        self.assertEqual(321, times.get("timing2"))

@@ -17,7 +17,7 @@ class Tile(namedtuple("Tile", "z x y")):
         if self.z == 0:
             return None
 
-        return Tile(self.z - 1, self.x / 2, self.y / 2)
+        return Tile(self.z - 1, int(self.x / 2), int(self.y / 2))
 
 
 def _floor(x):

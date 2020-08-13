@@ -30,7 +30,7 @@ class TestOsmSource(unittest.TestCase):
         src = OsmSource()
         locations, timing = src(reader, Tile(0, 0, 0))
 
-        self.assertEquals([
+        self.assertEqual([
             'planet_osm_point',
             'planet_osm_line',
             'planet_osm_polygon',
@@ -38,7 +38,7 @@ class TestOsmSource(unittest.TestCase):
             'planet_osm_rels',
             ], [l.name for l in locations])
         for l in locations:
-            self.assertEquals([], l.records)
+            self.assertEqual([], l.records)
 
         # should have 6 executions of templates - one for each table, plus one
         # for "setup.sql"
@@ -51,9 +51,9 @@ class TestOsmSource(unittest.TestCase):
             ('relations.sql', []),
         ]
 
-        self.assertEquals(len(expected_executions), len(reader.executed))
+        self.assertEqual(len(expected_executions), len(reader.executed))
         for expect, actual in zip(expected_executions, reader.executed):
             expect_sql, expect_keys = expect
             actual_sql, actual_kwargs = actual
-            self.assertEquals(expect_sql, actual_sql)
-            self.assertEquals(set(expect_keys), set(actual_kwargs.keys()))
+            self.assertEqual(expect_sql, actual_sql)
+            self.assertEqual(set(expect_keys), set(actual_kwargs.keys()))

@@ -15,7 +15,7 @@ def calculate_padded_bounds(factor, bounds):
     min_x, min_y, max_x, max_y = bounds
     dx = 0.5 * (max_x - min_x) * (factor - 1.0)
     dy = 0.5 * (max_y - min_y) * (factor - 1.0)
-    return (min_x - dx, min_y - dy, max_x + dx, max_y + dy)
+    return min_x - dx, min_y - dy, max_x + dx, max_y + dy
 
 
 class GenericTableSource(object):
@@ -45,9 +45,7 @@ class GenericTableSource(object):
                 table = table_reader.read_table(
                     template_name, self.table_name, st_box2d=box2d)
             except Exception as e:
-                raise type(e), \
-                    '%s in table %r' % (str(e), self.table_name), \
-                    exc_info()[2]
+                raise type(e)('%s in table %r' % (str(e), self.table_name)).with_traceback(exc_info()[2])
 
         source_locations.append(table)
 
