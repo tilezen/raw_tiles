@@ -8,9 +8,6 @@ jobs:
       - run:
           name: Update packages
           command: sudo apt-get update
-      - run:
-          name: Install PROJ data
-          command: sudo apt-get install proj-data
       - restore_cache:
           key: python-requirements-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
@@ -37,7 +34,7 @@ jobs:
           name: Check PEP8 compliance
           command: |
             . ~/env/bin/activate
-            find . -not -path '*/.eggs/*' -not -path '*OSciMap4*' -name '*.py' | xargs flake8
+            find . -not -path '*/.eggs/*' -name '*.py' | xargs flake8
       - run:
           name: Unit tests
           command: |
