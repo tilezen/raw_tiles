@@ -25,8 +25,8 @@ def parse_range(z, args):
     arg = args[0]
 
     if arg == "*":
-        return xrange(0, 2**z - 1)
-    r = map(int, arg.split('-'))
+        return list(range(0, 2**z - 1))
+    r = list(map(int, arg.split('-')))
     if len(r) == 1:
         r = [r[0], r[0]]
     elif len(r) != 2:
@@ -36,7 +36,7 @@ def parse_range(z, args):
     # range is inclusive, but xrange is exclusive of the last parameter, so
     # need to shift it by one.
     lo, hi = r
-    return xrange(lo, hi + 1)
+    return list(range(lo, hi + 1))
 
 
 def raw_tiles_main():

@@ -36,9 +36,9 @@ class TestOsmSource(unittest.TestCase):
             'planet_osm_polygon',
             'planet_osm_ways',
             'planet_osm_rels',
-            ], [l.name for l in locations])
-        for l in locations:
-            self.assertEqual([], l.records)
+            ], [location.name for location in locations])
+        for location in locations:
+            self.assertEqual([], location.records)
 
         # should have 6 executions of templates - one for each table, plus one
         # for "setup.sql"

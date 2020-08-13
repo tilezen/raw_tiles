@@ -45,7 +45,8 @@ class GenericTableSource(object):
                 table = table_reader.read_table(
                     template_name, self.table_name, st_box2d=box2d)
             except Exception as e:
-                raise type(e)('%s in table %r' % (str(e), self.table_name)).with_traceback(exc_info()[2])
+                raise type(e)('%s in table %r' % (str(e), self.table_name))\
+                    .with_traceback(exc_info()[2])
 
         source_locations.append(table)
 

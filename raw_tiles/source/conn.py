@@ -24,7 +24,7 @@ class OnDemandConnectionContext(object):
             self.conn = psycopg2.connect(**params)
 
         else:
-            assert isinstance(self.dbparams, (unicode, str)), \
+            assert isinstance(self.dbparams, str), \
                     'Unknown dbparams: %s' % self.dbparams
             self.conn = psycopg2.connect(self.dbparams)
         return self.conn

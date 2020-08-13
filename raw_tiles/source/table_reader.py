@@ -24,10 +24,7 @@ class TableReader(object):
         for row in self.cur:
             fully_read_row = []
             for col in row:
-                if isinstance(col, buffer):
-                    read_col = bytes(col)
-                else:
-                    read_col = col
+                read_col = col
                 fully_read_row.append(read_col)
             if row_transform is not None:
                 fully_read_row = row_transform(fully_read_row)
