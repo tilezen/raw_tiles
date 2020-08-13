@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-from itertools import izip
 
 
 def deassoc(x):
@@ -18,4 +17,4 @@ def deassoc(x):
     """
 
     pairs = [iter(x)] * 2
-    return dict(izip(*pairs))
+    return dict(zip(*pairs))

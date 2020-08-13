@@ -1,4 +1,4 @@
-from cStringIO import StringIO
+from io import BytesIO
 from raw_tiles import FormattedData
 from raw_tiles import RawrTile
 from raw_tiles.util import time_block
@@ -29,7 +29,7 @@ class RawrGenerator(object):
         with time_block(format_timing, 'total'):
             for source_location in source_locations:
                 with time_block(format_timing, source_location.name):
-                    buf = StringIO()
+                    buf = BytesIO()
                     writer = self.formatter.create(buf)
                     for record in source_location.records:
                         # record is a tuple here, and writer.write takes
